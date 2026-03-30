@@ -1,622 +1,654 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Benchmark Ploomes vs Concorrentes</title>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Lora:ital,wght@1,600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-deep: #1E0C45;
-            --brand-primary: #7443F6;
-            --brand-light: #AB82FF;
-            --brand-soft: #C7B0FF;
-            --text-main: #EBE5FF;
-            --status-sup: #0A8F3C;
-            --status-sup-light: rgba(10,143,60,0.12);
-            --status-eq: #6B7280;
-            --status-eq-light: rgba(107,114,128,0.10);
-            --status-inf: #DC2626;
-            --status-inf-light: rgba(220,38,38,0.10);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Benchmark: Ploomes vs Concorrentes — Squad ERP</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Lora:ital,wght@1,600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --purple-ploo: #7443F6;
+    --dark-ploo: #1E0C45;
+    --light-ploo: #EBE5FF;
+    --purple-mid: #610FC7;
+    --purple-light: #AB82FF;
+    --purple-lighter: #C7B0FF;
+    --purple-faint: #F5F2FF;
+    --white: #FFFFFF;
+    --green: #0A8F3C;
+    --green-light: rgba(10,143,60,0.12);
+    --gray: #6B7280;
+    --gray-light: rgba(107,114,128,0.10);
+    --red: #DC2626;
+    --red-light: rgba(220,38,38,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Manrope', sans-serif;
+    background: var(--dark-ploo);
+    color: var(--white);
+    min-height: 100vh;
+    padding: 32px 24px;
+  }
+  .container { max-width: 1200px; margin: 0 auto; }
+  .subtitle { font-family: 'Lora', serif; font-style: italic; font-weight: 600; }
 
-        body {
-            font-family: 'Manrope', sans-serif;
-            background: var(--bg-deep);
-            color: #fff;
-            margin: 0;
-            padding: 32px 24px;
-            min-height: 100vh;
-            box-sizing: border-box;
-        }
+  /* Summary Cards */
+  .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 32px; }
+  .summary-card {
+    background: rgba(116,67,246,0.08);
+    border: 1px solid rgba(116,67,246,0.2);
+    border-radius: 12px;
+    padding: 16px 20px;
+  }
+  .summary-label { font-size: 11px; font-weight: 600; color: var(--purple-light); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .summary-num { font-size: 36px; font-weight: 800; }
+  .summary-total { font-size: 14px; color: var(--purple-lighter); }
 
-        * { box-sizing: border-box; }
+  /* Section panels */
+  .panel {
+    background: rgba(116,67,246,0.06);
+    border: 1px solid rgba(116,67,246,0.15);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 28px;
+  }
+  .panel-title { font-size: 18px; font-weight: 700; color: var(--light-ploo); margin: 0 0 4px; }
+  .panel-sub { font-size: 12px; color: var(--purple-light); margin: 0 0 20px; }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+  /* Heat Map Table */
+  .heatmap-wrap { overflow-x: auto; }
+  .heatmap { width: 100%; border-collapse: separate; border-spacing: 3px; table-layout: fixed; min-width: 700px; }
+  .heatmap th { padding: 8px 2px; font-size: 10px; font-weight: 600; color: var(--purple-light); text-align: center; line-height: 1.2; vertical-align: bottom; }
+  .heatmap th:first-child { width: 120px; text-align: left; padding-left: 6px; font-size: 11px; }
+  .heatmap th:last-child { width: 56px; }
+  .heatmap td { text-align: center; padding: 3px; }
+  .heatmap td:first-child { text-align: left; padding: 10px 6px; font-size: 13px; font-weight: 500; color: #DBD4FF; border-radius: 8px 0 0 8px; }
+  .heatmap td:last-child { padding: 4px; border-radius: 0 8px 8px 0; }
+  .heatmap tr { cursor: pointer; }
+  .heatmap tr.selected td:first-child { font-weight: 700; color: #fff; background: rgba(116,67,246,0.18); }
+  .heatmap tr.selected td:last-child { background: rgba(116,67,246,0.18); }
 
-        /* Header Styles */
-        .header-tag {
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--brand-light);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 8px;
-        }
+  .cell {
+    border-radius: 6px;
+    padding: 6px 0;
+    font-size: 14px;
+    font-weight: 700;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+  }
+  .cell.sup { background: var(--green-light); color: var(--green); }
+  .cell.sup:hover { background: var(--green); color: #fff; border-color: var(--green); }
+  .cell.eq { background: var(--gray-light); color: var(--gray); }
+  .cell.eq:hover { background: var(--gray); color: #fff; border-color: var(--gray); }
+  .cell.inf { background: var(--red-light); color: var(--red); }
+  .cell.inf:hover { background: var(--red); color: #fff; border-color: var(--red); }
 
-        h1 {
-            font-size: 32px;
-            font-weight: 800;
-            margin: 0 0 4px;
-            line-height: 1.2;
-        }
+  .legend { display: flex; gap: 20px; margin-top: 16px; justify-content: center; font-size: 12px; color: var(--purple-lighter); }
+  .legend span { font-weight: 700; }
 
-        h1 span { color: var(--brand-primary); }
+  /* Detail Panel */
+  .detail-panel {
+    background: rgba(116,67,246,0.06);
+    border: 1px solid rgba(116,67,246,0.2);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 28px;
+    animation: fadeIn 0.2s ease;
+    display: none;
+  }
+  .detail-panel.active { display: block; }
+  .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .detail-title { font-size: 20px; font-weight: 700; color: var(--light-ploo); }
+  .detail-title .vs { color: var(--purple-ploo); }
+  .btn-close {
+    background: rgba(116,67,246,0.15); border: 1px solid rgba(116,67,246,0.3);
+    border-radius: 8px; color: var(--purple-lighter); padding: 6px 14px; cursor: pointer;
+    font-size: 12px; font-family: inherit;
+  }
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+  .tab-btn {
+    background: rgba(116,67,246,0.1); border: none; border-radius: 8px;
+    color: var(--purple-light); padding: 8px 16px; cursor: pointer;
+    font-size: 13px; font-weight: 600; font-family: inherit; transition: all 0.15s;
+  }
+  .tab-btn.active { background: var(--purple-ploo); color: #fff; }
 
-        .subtitle {
-            font-family: 'Lora', serif;
-            font-style: italic;
-            font-weight: 600;
-            font-size: 17px;
-            color: var(--brand-soft);
-            margin: 4px 0 28px;
-        }
+  .criteria-list { display: grid; gap: 10px; }
+  .criteria-card {
+    background: rgba(30,12,69,0.6); border-radius: 12px; padding: 14px 18px;
+    border-left: 4px solid var(--gray);
+  }
+  .criteria-card.sup { border-left-color: var(--green); }
+  .criteria-card.eq { border-left-color: var(--gray); }
+  .criteria-card.inf { border-left-color: var(--red); }
+  .criteria-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .criteria-name { font-weight: 700; font-size: 14px; color: var(--light-ploo); }
+  .badge {
+    font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .badge.sup { color: var(--green); background: var(--green-light); }
+  .badge.eq { color: var(--gray); background: var(--gray-light); }
+  .badge.inf { color: var(--red); background: var(--red-light); }
+  .criteria-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .compare-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .compare-label.ploomes { color: var(--purple-ploo); }
+  .compare-label.competitor { color: var(--purple-light); }
+  .compare-text { font-size: 12px; line-height: 1.5; }
+  .compare-text.ploomes { color: var(--purple-lighter); }
+  .compare-text.competitor { color: #9CA3AF; }
 
-        /* Summary Cards */
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 32px;
-        }
+  /* Sources */
+  .sources-list { display: grid; gap: 6px; }
+  .source-link {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(30,12,69,0.5); border-radius: 10px; padding: 10px 16px;
+    text-decoration: none; transition: background 0.15s;
+    border: 1px solid rgba(116,67,246,0.08);
+  }
+  .source-link:hover { background: rgba(116,67,246,0.12); }
+  .source-num {
+    width: 28px; height: 28px; border-radius: 6px; background: rgba(116,67,246,0.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; color: var(--purple-ploo); font-weight: 700; flex-shrink: 0;
+  }
+  .source-info { overflow: hidden; flex: 1; }
+  .source-title { font-size: 13px; font-weight: 600; color: var(--light-ploo); margin-bottom: 2px; }
+  .source-url { font-size: 11px; color: var(--gray); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .source-arrow { color: var(--purple-ploo); font-size: 16px; flex-shrink: 0; }
 
-        .summary-card {
-            background: rgba(116,67,246,0.08);
-            border: 1px solid rgba(116,67,246,0.2);
-            border-radius: 12px;
-            padding: 16px 20px;
-        }
+  /* Insights */
+  .insights-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .insight-box { border-radius: 12px; padding: 20px; }
+  .insight-box.green { background: rgba(10,143,60,0.08); border: 1px solid rgba(10,143,60,0.15); }
+  .insight-box.red { background: rgba(220,38,38,0.06); border: 1px solid rgba(220,38,38,0.12); }
+  .insight-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+  .insight-item { font-size: 13px; color: var(--purple-lighter); line-height: 1.6; margin-bottom: 8px; padding-left: 16px; position: relative; }
+  .insight-item .dot { position: absolute; left: 0; }
 
-        .summary-label {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--brand-light);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-        }
+  /* Competitor Summary */
+  .competitors-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+  .comp-card {
+    background: rgba(30,12,69,0.5); border-radius: 12px; padding: 16px; cursor: pointer;
+    border: 1px solid rgba(116,67,246,0.1); transition: all 0.15s; text-align: center;
+  }
+  .comp-card:hover { border-color: rgba(116,67,246,0.3); }
+  .comp-name { font-size: 14px; font-weight: 700; color: var(--light-ploo); margin-bottom: 8px; }
+  .comp-scores { display: flex; justify-content: center; gap: 8px; font-size: 12px; font-weight: 600; }
+  .comp-sources { font-size: 10px; color: var(--gray); margin-top: 8px; }
 
-        .summary-value {
-            display: flex;
-            align-items: baseline;
-            gap: 8px;
-        }
+  /* Footer */
+  .footer { font-size: 11px; color: var(--gray); text-align: center; padding: 16px 0; border-top: 1px solid rgba(116,67,246,0.1); }
 
-        .summary-number { font-size: 36px; font-weight: 800; }
-        .summary-pct { font-size: 14px; color: var(--brand-soft); }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  ::-webkit-scrollbar { height: 6px; }
+  ::-webkit-scrollbar-track { background: rgba(116,67,246,0.05); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb { background: rgba(116,67,246,0.2); border-radius: 3px; }
 
-        /* Heat Map Table */
-        .card-panel {
-            background: rgba(116,67,246,0.06);
-            border: 1px solid rgba(116,67,246,0.15);
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 28px;
-            overflow-x: auto;
-        }
-
-        .panel-title { font-size: 18px; font-weight: 700; margin: 0 0 4px; color: var(--text-main); }
-        .panel-sub { font-size: 12px; color: var(--brand-light); margin: 0 0 20px; }
-
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 3px;
-            table-layout: fixed;
-            min-width: 700px;
-        }
-
-        th {
-            padding: 8px 2px;
-            font-size: 10px;
-            font-weight: 600;
-            color: var(--brand-light);
-            text-align: center;
-            line-height: 1.2;
-            vertical-align: bottom;
-        }
-
-        .row-competitor { cursor: pointer; transition: background 0.2s; }
-        .row-competitor.selected td:first-child, 
-        .row-competitor.selected td:last-child { 
-            background: rgba(116,67,246,0.18); 
-        }
-
-        .cell-name {
-            padding: 10px 6px;
-            font-size: 13px;
-            font-weight: 500;
-            color: #DBD4FF;
-            text-align: left;
-            border-radius: 8px 0 0 8px;
-        }
-        .row-competitor.selected .cell-name { font-weight: 700; color: #fff; }
-
-        .status-cell { text-align: center; padding: 3px; }
-        .status-icon-box {
-            border-radius: 6px;
-            padding: 6px 0;
-            font-size: 14px;
-            font-weight: 700;
-            transition: all 0.15s ease;
-            border: 1px solid transparent;
-        }
-
-        /* Detail Panel */
-        #detail-panel {
-            display: none;
-            animation: fadeIn 0.2s ease;
-        }
-
-        .detail-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .tab-btn {
-            background: rgba(116,67,246,0.1);
-            border: none;
-            border-radius: 8px;
-            color: var(--brand-light);
-            padding: 8px 16px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            font-family: inherit;
-            transition: all 0.15s;
-            margin-right: 4px;
-        }
-
-        .tab-btn.active { background: var(--brand-primary); color: #fff; }
-
-        .criteria-card {
-            background: rgba(30,12,69,0.6);
-            border-radius: 12px;
-            padding: 14px 18px;
-            margin-bottom: 10px;
-        }
-
-        .criteria-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .criteria-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .side-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-        .side-text { font-size: 12px; line-height: 1.5; }
-
-        /* Source Link */
-        .source-link {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(30,12,69,0.5);
-            border-radius: 10px;
-            padding: 10px 16px;
-            text-decoration: none;
-            border: 1px solid rgba(116,67,246,0.08);
-            margin-bottom: 6px;
-            transition: background 0.15s;
-        }
-        .source-link:hover { background: rgba(116,67,246,0.12); }
-
-        /* Insights */
-        .insights-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        .insight-box { border-radius: 12px; padding: 20px; }
-        .insight-item { font-size: 13px; color: var(--brand-soft); line-height: 1.6; margin-bottom: 8px; padding-left: 16px; position: relative; }
-        .insight-item::before { content: '•'; position: absolute; left: 0; }
-
-        /* Small Donut */
-        .mini-pie-container { display: flex; justify-content: center; align-items: center; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-        ::-webkit-scrollbar { height: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(116,67,246,0.05); }
-        ::-webkit-scrollbar-thumb { background: rgba(116,67,246,0.2); border-radius: 3px; }
-    </style>
+  @media (max-width: 768px) {
+    .summary-grid { grid-template-columns: 1fr; }
+    .insights-grid { grid-template-columns: 1fr; }
+    .competitors-grid { grid-template-columns: repeat(2, 1fr); }
+    .criteria-compare { grid-template-columns: 1fr; }
+  }
+</style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header-tag">Squad ERP · Pesquisa Out–Nov 2025</div>
-    <h1>Benchmark: Ploomes <span>vs</span> Concorrentes</h1>
-    <p class="subtitle">Integrações nativas CRM–ERP de mercado</p>
+  <!-- Header -->
+  <div style="margin-bottom:8px;font-size:12px;font-weight:500;color:var(--purple-light);text-transform:uppercase;letter-spacing:2px">Squad ERP · Pesquisa Out–Nov 2025</div>
+  <h1 style="font-size:32px;font-weight:800;margin:0 0 4px;line-height:1.2">Benchmark: Ploomes <span style="color:var(--purple-ploo)">vs</span> Concorrentes</h1>
+  <p class="subtitle" style="font-size:17px;color:var(--purple-lighter);margin:4px 0 28px">Integrações nativas CRM–ERP de mercado</p>
 
-    <div class="summary-grid" id="summary-cards">
-        </div>
+  <!-- Summary Cards -->
+  <div class="summary-grid" id="summaryCards"></div>
 
-    <div class="card-panel">
-        <h2 class="panel-title">Matriz de Calor</h2>
-        <p class="panel-sub">Clique em um concorrente para ver detalhes e fontes</p>
-        <table id="matrix-table">
-            <thead>
-                <tr id="table-headers">
-                    <th style="width: 120px; text-align: left;">CRM</th>
-                    <th style="width: 56px;"></th>
-                </tr>
-            </thead>
-            <tbody id="matrix-body"></tbody>
-        </table>
-        <div style="display: flex; gap: 20px; marginTop: 16px; justify-content: center; font-size: 12px; color: #C7B0FF; margin-top: 15px;">
-            <div><span style="color: var(--status-sup); font-weight: 700;">▲</span> Superior</div>
-            <div><span style="color: var(--status-eq); font-weight: 700;">●</span> Equivalente</div>
-            <div><span style="color: var(--status-inf); font-weight: 700;">▼</span> Inferior</div>
-        </div>
+  <!-- Heat Map -->
+  <div class="panel">
+    <h2 class="panel-title">Matriz de Calor</h2>
+    <p class="panel-sub">Clique em um concorrente para ver detalhes e fontes</p>
+    <div class="heatmap-wrap">
+      <table class="heatmap" id="heatmapTable"></table>
     </div>
-
-    <div id="detail-panel" class="card-panel" style="border-color: rgba(116,67,246,0.2);">
-        <div class="detail-header">
-            <h2 class="panel-title" id="detail-title">Ploomes vs Concorrente</h2>
-            <button onclick="closeDetail()" style="background: rgba(116,67,246,0.15); border: 1px solid rgba(116,67,246,0.3); border-radius: 8px; color: var(--brand-soft); padding: 6px 14px; cursor: pointer; font-size: 12px;">Fechar ✕</button>
-        </div>
-        <div style="margin-bottom: 20px;">
-            <button class="tab-btn active" onclick="setTab('details')">Critérios</button>
-            <button class="tab-btn" id="sources-tab-btn" onclick="setTab('sources')">Fontes</button>
-        </div>
-        <div id="detail-content"></div>
+    <div class="legend">
+      <div><span style="color:var(--green)">▲</span> Superior</div>
+      <div><span style="color:var(--gray)">●</span> Equivalente</div>
+      <div><span style="color:var(--red)">▼</span> Inferior</div>
     </div>
+  </div>
 
-    <div class="card-panel">
-        <h2 class="panel-title" style="margin-bottom: 20px;">Principais achados</h2>
-        <div class="insights-grid">
-            <div class="insight-box" style="background: rgba(10,143,60,0.08); border: 1px solid rgba(10,143,60,0.15);">
-                <div class="summary-label" style="color: var(--status-sup); margin-bottom: 12px;">▲ Vantagens competitivas</div>
-                <div class="insight-item">Consultas em tempo real (preço, imposto, estoque) via Sankhya — exclusividade absoluta</div>
-                <div class="insight-item">Mapeamento dinâmico Sankhya: qualquer campo do BD ↔ qualquer campo do Ploomes</div>
-                <div class="insight-item">Filtros flexíveis na integração Sankhya — configuráveis em qualquer campo</div>
-                <div class="insight-item">Logs de auditoria com payloads (Sankhya) — nível Salesforce/Mulesoft</div>
-                <div class="insight-item">API mais completa que RD Station e mais acessível que Salesforce</div>
-                <div class="insight-item">Único CRM com integrações nativas plug & play com ERPs brasileiros (Sankhya e OMIE)</div>
-            </div>
-            <div class="insight-box" style="background: rgba(220,38,38,0.06); border: 1px solid rgba(220,38,38,0.12);">
-                <div class="summary-label" style="color: var(--status-inf); margin-bottom: 12px;">▼ Pontos de atenção</div>
-                <div class="insight-item">Sem nodes nativos no N8N — todos os 5 concorrentes possuem</div>
-                <div class="insight-item">Ecossistema iPaaS restrito (só Pluga) vs 4-6 opções dos concorrentes</div>
-                <div class="insight-item">Entidades mais restritas que Salesforce (falta financeiro, contratos, estoque nativos)</div>
-                <div class="insight-item">Logs do Mulesoft são superiores em visualização de saúde e gráficos</div>
-                <div class="insight-item">Integração OMIE com gap evidente vs Sankhya (mapeamento fixo)</div>
-                <div class="insight-item">ERD (modelo relacional) não documentado publicamente</div>
-            </div>
-        </div>
+  <!-- Detail Panel -->
+  <div class="detail-panel" id="detailPanel">
+    <div class="detail-header">
+      <h2 class="detail-title">Ploomes <span class="vs">vs</span> <span id="detailName"></span></h2>
+      <button class="btn-close" onclick="closeDetail()">Fechar ✕</button>
     </div>
+    <div class="tabs">
+      <button class="tab-btn active" id="tabDetails" onclick="switchTab('details')">Critérios</button>
+      <button class="tab-btn" id="tabSources" onclick="switchTab('sources')">Fontes</button>
+    </div>
+    <div id="detailContent"></div>
+    <div id="sourcesContent" style="display:none"></div>
+  </div>
 
-    <div style="font-size: 11px; color: #6B7280; text-align: center; padding: 16px 0; border-top: 1px solid rgba(116,67,246,0.1);">
-        Pesquisa: Matheus Martins (PO Squad ERP) · Out–Nov 2025 · Fontes: documentação pública e testes de usabilidade.
+  <!-- Key Insights -->
+  <div class="panel">
+    <h2 class="panel-title" style="margin-bottom:20px">Principais achados</h2>
+    <div class="insights-grid">
+      <div class="insight-box green">
+        <div class="insight-title" style="color:var(--green)">▲ Vantagens competitivas</div>
+        <div class="insight-item"><span class="dot" style="color:var(--green)">•</span>Consultas em tempo real (preço, imposto, estoque) via Sankhya — exclusividade absoluta no mercado CRM-ERP</div>
+        <div class="insight-item"><span class="dot" style="color:var(--green)">•</span>Mapeamento dinâmico Sankhya: qualquer campo do BD ↔ qualquer campo do Ploomes com interface de configuração</div>
+        <div class="insight-item"><span class="dot" style="color:var(--green)">•</span>Filtros flexíveis na integração Sankhya — configuráveis em qualquer campo de qualquer entidade</div>
+        <div class="insight-item"><span class="dot" style="color:var(--green)">•</span>Logs de auditoria com payloads (Sankhya) — nenhum concorrente exceto Salesforce/Mulesoft se aproxima</div>
+        <div class="insight-item"><span class="dot" style="color:var(--green)">•</span>API mais completa que RD Station e mais acessível que Salesforce (sem linguagem proprietária)</div>
+        <div class="insight-item"><span class="dot" style="color:var(--green)">•</span>Único CRM com integrações nativas plug & play com ERPs brasileiros (Sankhya e OMIE)</div>
+      </div>
+      <div class="insight-box red">
+        <div class="insight-title" style="color:var(--red)">▼ Pontos de atenção</div>
+        <div class="insight-item"><span class="dot" style="color:var(--red)">•</span>Sem nodes nativos no N8N — todos os 5 concorrentes possuem integração oficial catalogada</div>
+        <div class="insight-item"><span class="dot" style="color:var(--red)">•</span>Ecossistema iPaaS restrito (só Pluga) vs 4-6 opções dos concorrentes (Make, Albato, N8N, Appz Connect...)</div>
+        <div class="insight-item"><span class="dot" style="color:var(--red)">•</span>Entidades mais restritas que Salesforce (falta financeiro, contratos, estoque como entidades nativas)</div>
+        <div class="insight-item"><span class="dot" style="color:var(--red)">•</span>Logs do Mulesoft/Salesforce são superiores — incluem dashboard de saúde e gráficos de consumo API</div>
+        <div class="insight-item"><span class="dot" style="color:var(--red)">•</span>Integração OMIE com mapeamento fixo, sem filtros flexíveis e sem logs — gap evidente vs Sankhya</div>
+        <div class="insight-item"><span class="dot" style="color:var(--red)">•</span>ERD (modelo relacional) não documentado — Pipedrive e Zoho disponibilizam publicamente</div>
+      </div>
     </div>
+  </div>
+
+  <!-- Per-Competitor Summary -->
+  <div class="panel">
+    <h2 class="panel-title" style="margin-bottom:20px">Resumo por concorrente</h2>
+    <div class="competitors-grid" id="compGrid"></div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer" id="footerText"></div>
 </div>
 
 <script>
-    const COMPETITORS = ["Pipedrive", "Zoho CRM", "Salesforce", "HubSpot", "RD Station"];
-    const CRITERIA = [
-        { id: "api", label: "API Full Personalizada", short: "API" },
-        { id: "plugplay", label: "Plug & Play", short: "P&P" },
-        { id: "ipaas", label: "iPaaS", short: "iPaaS" },
-        { id: "entities", label: "Entidades Integradas", short: "Entid." },
-        { id: "mapping", label: "Config. Mapeamento", short: "Map." },
-        { id: "filters", label: "Config. Filtros", short: "Filtros" },
-        { id: "ways", label: "Vias (Imp/Exp)", short: "Vias" },
-        { id: "actions", label: "Ações (CRUD)", short: "Ações" },
-        { id: "limits", label: "Limites", short: "Limites" },
-        { id: "logs", label: "Logs de Integração", short: "Logs" },
-        { id: "realtime", label: "Consultas Tempo Real", short: "T. Real" },
-        { id: "ai", label: "Features IA", short: "IA" },
-    ];
+const COMPETITORS = ["Pipedrive", "Zoho CRM", "Salesforce", "HubSpot", "RD Station"];
+const CRITERIA = [
+  { id: "api", label: "API Full Personalizada", short: "API" },
+  { id: "plugplay", label: "Plug & Play", short: "P&P" },
+  { id: "ipaas", label: "iPaaS", short: "iPaaS" },
+  { id: "entities", label: "Entidades Integradas", short: "Entid." },
+  { id: "mapping", label: "Config. Mapeamento", short: "Map." },
+  { id: "filters", label: "Config. Filtros", short: "Filtros" },
+  { id: "ways", label: "Vias (Imp/Exp)", short: "Vias" },
+  { id: "actions", label: "Ações (CRUD)", short: "Ações" },
+  { id: "limits", label: "Limites", short: "Limites" },
+  { id: "logs", label: "Logs de Integração", short: "Logs" },
+  { id: "realtime", label: "Consultas Tempo Real", short: "T. Real" },
+  { id: "ai", label: "Features IA", short: "IA" },
+];
+const ICONS = { superior: "▲", equal: "●", inferior: "▼" };
+const LABELS = { superior: "Superior", equal: "Equivalente", inferior: "Inferior" };
+const CLASSES = { superior: "sup", equal: "eq", inferior: "inf" };
 
-    const STATUS_CONFIG = {
-        superior: { bg: "#0A8F3C", bgLight: "rgba(10,143,60,0.12)", label: "Superior", icon: "▲" },
-        equal: { bg: "#6B7280", bgLight: "rgba(107,114,128,0.10)", label: "Equivalente", icon: "●" },
-        inferior: { bg: "#DC2626", bgLight: "rgba(220,38,38,0.10)", label: "Inferior", icon: "▼" },
-    };
+const SOURCES = {
+  Pipedrive: [
+    { label: "Pipedrive API Docs", url: "https://pipedrive.readme.io/docs/core-api-concepts-about-pipedrive-api?utm_source=chatgpt.com" },
+    { label: "Conta Azul + Pipedrive", url: "https://ajuda.contaazul.com/hc/pt-br/articles/8099262350093-Integra%C3%A7%C3%A3o-Pipedrive-com-a-Conta-Azul" },
+    { label: "ERP Flex + Pipedrive", url: "https://erpflex.com.br/erpflex-e-pipedrive-integracao/" },
+    { label: "Gestão Click + Pipedrive", url: "https://ajuda.gestaoclick.com.br/hc/pt-br/articles/25611995136279-Como-integrar-o-ERP-ao-Pipedrive" },
+    { label: "Venda ERP + Pipedrive", url: "https://ajuda.vendaerp.com.br/painel/como-realizar-a-integrao-com-o-pipedrive-no-venda-erp" },
+    { label: "N8N — Pipedrive", url: "https://n8n.io/integrations/pipedrive/" },
+    { label: "Pluga — OMIE + Pipedrive", url: "https://pluga.co/ferramentas/omie/integracao/pipedrive/" },
+    { label: "Albato — OMIE + Pipedrive", url: "https://albato.com/br/connect/omie-with-pipedrive" },
+    { label: "Make — SAP + Pipedrive", url: "https://www.make.com/en/integrations/sap-s4hana/pipedrive" },
+    { label: "Appseconnect — SAP + Pipedrive", url: "https://www.appseconnect.com/sap-business-one-pipedrive-integration/" },
+    { label: "Floui — Totvs + Pipedrive", url: "https://floui.io/integracao/totvs-rms-pipedrive/" },
+  ],
+  "Zoho CRM": [
+    { label: "Zoho CRM API v8", url: "https://www.zoho.com/crm/developer/docs/api/v8/" },
+    { label: "Zoho API Limits", url: "https://www.zoho.com/crm/developer/docs/api/v8/api-limits.html" },
+    { label: "Zoho Bulk Write API", url: "https://www.zoho.com/crm/developer/docs/api/v8/bulk-write/overview.html" },
+    { label: "Zoho COQL (Query API)", url: "https://www.zoho.com/crm/developer/docs/api/v8/COQL-Overview.html" },
+    { label: "Zoho Sandbox", url: "https://www.zoho.com/pt-br/crm/developer/sandbox.html" },
+    { label: "Bigin by Zoho — API", url: "https://www.bigin.com/developer/docs/apis/v2/" },
+    { label: "Zoho Data Model (Fórum)", url: "https://help.zoho.com/portal/en/community/topic/how-to-print-the-data-model-zoho-crm" },
+    { label: "N8N — Zoho CRM", url: "https://n8n.io/integrations/zoho-crm/" },
+    { label: "Pluga — Zoho + OMIE", url: "https://pluga.co/ferramentas/zoho-crm/integracao/omie/" },
+    { label: "Pluga — Zoho + Conta Azul", url: "https://pluga.co/ferramentas/zoho-crm/integracao/conta-azul-financeiro/" },
+    { label: "Pluga — Zoho + Tiny ERP", url: "https://pluga.co/ferramentas/zoho-crm/integracao/tinyerp/" },
+    { label: "Albato — Zoho + OMIE", url: "https://albato.com/connect/omie-with-zoho" },
+    { label: "Albato — Zoho + Conta Azul", url: "https://albato.com/br/connect/contaazul-with-zoho" },
+    { label: "Make — Zoho + SAP", url: "https://www.make.com/en/integrations/zohocrm/sap-s4hana" },
+    { label: "Make — Zoho + Oracle", url: "https://www.make.com/en/integrations/zohocrm/oracle-fusion-cloud-erp" },
+    { label: "Make — Zoho + Visma", url: "https://www.make.com/en/integrations/zohocrm/visma.net-erp" },
+    { label: "Appseconnect — SAP B1 + Zoho", url: "https://www.appseconnect.com/sap-business-one-zoho-crm-integration/" },
+    { label: "Appseconnect — SAP S/4 + Zoho", url: "https://www.appseconnect.com/sap-s4hana-zoho-crm-integration/" },
+    { label: "Floui — Totvs + Zoho", url: "https://floui.io/integracao/totvs-protheus-zoho-crm/" },
+    { label: "Floui — Sankhya + Zoho", url: "https://floui.io/integracao/sankhya-zoho-crm/" },
+    { label: "Floui — Conector Sankhya (Docs)", url: "https://docs.floui.io/guia/conectores/categorias/servicos-externos/sankhya" },
+    { label: "Albato — Zoho Apps", url: "https://albato.com/br/apps/zoho" },
+    { label: "Bigin by Zoho — História", url: "https://www.bigin.com/pt-br/the-bigin-story.html?source_from=ft" },
+    { label: "Zoho Developer Portal (Login)", url: "https://accounts.zoho.com/signin?servicename=ZohoCRM&context=&serviceurl=https%3A%2F%2Fdeveloper.zoho.com%2Fhomepage.do" },
+  ],
+  Salesforce: [
+    { label: "Mulesoft Connectors", url: "https://www.mulesoft.com/platform/cloud-connectors" },
+    { label: "Mulesoft CRM-ERP Integration", url: "https://www.mulesoft.com/integration/crm-erp-integration" },
+    { label: "Mulesoft — SAP S/4HANA", url: "https://www.mulesoft.com/exchange/com.mulesoft.connectors/mule-sap-s4hana-cloud-connector/minor/2.9/" },
+    { label: "Mulesoft — Oracle EBS", url: "https://www.mulesoft.com/exchange/org.mule.connectors/mule-oracle-ebs-connector/minor/5.3/" },
+    { label: "Mulesoft — Mapping Visual", url: "https://docs.mulesoft.com/studio/graphically-construct-mapping-studio-task" },
+    { label: "Mulesoft Exchange", url: "https://www.mulesoft.com/exchange/?sort=featured" },
+    { label: "Salesforce AppExchange", url: "https://appexchange.salesforce.com/" },
+    { label: "AppExchange — Celigo", url: "https://appexchange.salesforce.com/appxListingDetail?listingId=a0N30000000rKM3EAM" },
+    { label: "N8N — Salesforce", url: "https://n8n.io/integrations/salesforce/" },
+    { label: "Albato — OMIE + Salesforce", url: "https://albato.com/br/connect/omie-with-salesforce" },
+    { label: "Albato — Conta Azul + Salesforce", url: "https://albato.com/br/connect/contaazul-with-salesforce" },
+    { label: "Make — Salesforce + SAP", url: "https://www.make.com/en/integrations/salesforce/sap-s4hana" },
+    { label: "Make — Salesforce + Oracle", url: "https://www.make.com/en/integrations/salesforce/oracle-fusion-cloud-erp" },
+    { label: "Make — Salesforce + Visma", url: "https://www.make.com/en/integrations/salesforce/visma.net-erp" },
+    { label: "Appseconnect — SAP S/4 + SF", url: "https://www.appseconnect.com/seamless-sap-s-4hana-and-salesforce-integration-automate-scale-grow/" },
+    { label: "Jitterbit — Salesforce + SAP", url: "https://www.jitterbit.com/application/salesforce/" },
+    { label: "Floui — Sankhya + Salesforce", url: "https://floui.io/integracao/sankhya-salesforce-crm/" },
+    { label: "Reddit — SF ERP Integration", url: "https://www.reddit.com/r/smallbusiness/comments/1n4xwcx/why_does_salesforce_erp_integration_feel_so/" },
+    { label: "Linguagem Apex (Salesforce)", url: "https://weenow.com.br/blog/linguagem-apex/" },
+    { label: "DataWeave (Mulesoft)", url: "https://developer.mulesoft.com/tutorials-and-howtos/dataweave/dataweave-libraries-in-exchange-getting-started/" },
+    { label: "Mulesoft — Mapping (Runtime)", url: "https://docs.mulesoft.com/mule-runtime/latest/transform-graphically-construct-mapping-studio-task" },
+    { label: "Appseconnect — NetSuite + SF", url: "https://www.appseconnect.com/netsuite-salesforce-crm-integration/" },
+    { label: "Make — Salesforce (geral)", url: "https://www.make.com/en/integrations/salesforce" },
+    { label: "Salesforce OData Adapter", url: "https://help.salesforce.com/s/articleView?id=platform.odata_adapter_about.htm&type=5&utm_source=chatgpt.com" },
+    { label: "Mulesoft — ERP Orders API", url: "https://www.mulesoft.com/exchange/org.mule.examples/accel-erp-orders-prc-api-spec/minor/1.0/console/method/%234736/" },
+    { label: "Mulesoft Connectors (PT)", url: "https://www.mulesoft.com/pt/platform/cloud-connectors" },
+    { label: "AppExchange — Listing 1", url: "https://appexchange.salesforce.com/appxListingDetail?listingId=a0N3A00000FR4lMUAT&utm_source=chatgpt.com" },
+    { label: "AppExchange — Listing 2", url: "https://appexchange.salesforce.com/appxListingDetail?listingId=a0N3A00000G0opvUAB&utm_source=chatgpt.com" },
+    { label: "AppExchange — Listing 3", url: "https://appexchange.salesforce.com/appxListingDetail?listingId=a0N3A00000ErFn9UAF&utm_source=chatgpt.com" },
+    { label: "AppExchange — Listing 4", url: "https://appexchange.salesforce.com/appxListingDetail?listingId=b681e3ea-33e6-449b-8645-6737a9784888" },
+  ],
+  HubSpot: [
+    { label: "HubSpot API Reference", url: "https://developers.hubspot.com/docs/api-reference/overview" },
+    { label: "HubSpot API Usage Limits", url: "https://br.developers.hubspot.com/docs/apps/legacy-apps/api-usage/usage-details" },
+    { label: "HubSpot Data Sync Mapping", url: "https://knowledge.hubspot.com/pt/integrations/understand-your-data-sync-field-mappings" },
+    { label: "HubSpot Workflow Details", url: "https://knowledge.hubspot.com/workflows/understand-your-workflow-details-page" },
+    { label: "HubSpot Workflow Errors", url: "https://knowledge.hubspot.com/pt/workflows/troubleshoot-common-workflow-errors" },
+    { label: "HubSpot Event Health", url: "https://knowledge.hubspot.com/data-management/manage-custom-events-with-hubspot-event-health" },
+    { label: "HubSpot Data Sync Guide", url: "https://knowledge.hubspot.com/pt/integrations/connect-and-use-hubspot-data-sync" },
+    { label: "Marketplace — Oracle NetSuite", url: "https://ecosystem.hubspot.com/pt/marketplace/listing/netsuite-226318" },
+    { label: "Marketplace — SAP B1", url: "https://ecosystem.hubspot.com/pt/marketplace/listing/sap-b1-data-sync-commercient" },
+    { label: "Marketplace — Sanka", url: "https://ecosystem.hubspot.com/pt/marketplace/listing/sanka" },
+    { label: "Marketplace — Visma", url: "https://ecosystem.hubspot.com/pt/marketplace/listing/visma-net-integration" },
+    { label: "Marketplace — Visma Sync (Spring)", url: "https://ecosystem.hubspot.com/pt/marketplace/listing/visma-net-hubspot-sync-by-spring-agency-as-1454302" },
+    { label: "Marketplace — Visma e-conomic", url: "https://ecosystem.hubspot.com/pt/marketplace/listing/visma-e-conomic-418661" },
+    { label: "Marketplace — ERPs", url: "https://ecosystem.hubspot.com/pt/marketplace/featured/apps-for-operations-teams?eco_CATEGORY=ERP" },
+    { label: "N8N — HubSpot", url: "https://n8n.io/integrations/hubspot/" },
+    { label: "Pluga — HubSpot + OMIE", url: "https://pluga.co/ferramentas/hubspot-crm/integracao/omie/" },
+    { label: "Pluga — HubSpot + Conta Azul", url: "https://pluga.co/ferramentas/hubspot-crm/integracao/conta-azul-financeiro/" },
+    { label: "Pluga — HubSpot + Tiny", url: "https://pluga.co/ferramentas/hubspot-crm/integracao/tinyerp/" },
+    { label: "Albato — HubSpot + OMIE", url: "https://albato.com/connect/hubspot-with-omie" },
+    { label: "Albato — HubSpot + Conta Azul", url: "https://albato.com/br/connect/contaazul-with-hubspot" },
+    { label: "Make — HubSpot + SAP", url: "https://www.make.com/en/integrations/hubspotcrm/sap-s4hana" },
+    { label: "Make — HubSpot + Visma", url: "https://www.make.com/en/integrations/hubspotcrm/visma.net-erp" },
+    { label: "Make — HubSpot + NetSuite", url: "https://www.make.com/en/integrations/hubspotcrm/netsuite" },
+    { label: "Appseconnect — NetSuite", url: "https://www.appseconnect.com/netsuite-integrations/" },
+    { label: "Appseconnect — SAP S/4", url: "https://www.appseconnect.com/sap-s4hana-integration/" },
+  ],
+  "RD Station": [
+    { label: "RD Station CRM API", url: "https://developers.rdstation.com/reference/crm-v2-introduction" },
+    { label: "RD Station API Limits", url: "https://developers.rdstation.com/reference/limite-de-requisicoes-da-api" },
+    { label: "RD Station + OMIE", url: "https://www.rdstation.com/integracoes/omie/" },
+    { label: "RD Station + Clínica nas Nuvens", url: "https://www.rdstation.com/integracoes/clinica-nas-nuvens/" },
+    { label: "RD Station + ERP Easy (ISY)", url: "https://www.rdstation.com/integracoes/erp-easy/" },
+    { label: "Clínica nas Nuvens — Config", url: "https://ajuda.rdstation.com/s/article/Como-integrar-com-a-Cl%C3%ADnica-nas-Nuvens" },
+    { label: "RD Station — API Integration", url: "https://ajuda.rdstation.com/s/article/Integrar-o-RD-Station-CRM-com-outras-plataformas-via-API" },
+    { label: "Senior + RD Station", url: "https://documentacao.senior.com.br/gestao-de-relacionamento-crm/6.2.4/integracoes/integracao-com-rd-station/" },
+    { label: "Totvs CRM + RD Station", url: "https://centraldeatendimento.totvs.com/hc/pt-br/articles/4405477357335-Cross-Segmentos-CRM-Gest%C3%A3o-de-Clientes-Marketplace-Integrar-o-RD-Station-ao-TOTVS-CRM" },
+    { label: "N8N — RD Station CRM", url: "https://n8n.io/integrations/rd-station-crm/" },
+    { label: "Pluga — RD + OMIE", url: "https://pluga.co/ferramentas/rd-station/integracao/omie/" },
+    { label: "Pluga — RD + Conta Azul", url: "https://pluga.co/ferramentas/rd-station/integracao/conta-azul-financeiro/" },
+    { label: "Pluga — RD + Tiny", url: "https://pluga.co/ferramentas/rd-station/integracao/tinyerp/" },
+    { label: "Albato — RD + Conta Azul", url: "https://albato.com/br/connect/contaazul-with-rdstationcrm" },
+    { label: "Albato — RD + OMIE", url: "https://albato.com/connect/omie-with-rdstationcrm" },
+    { label: "Make — RD Station", url: "https://www.make.com/en/integrations/rd-station" },
+    { label: "Make — RD + SAP", url: "https://www.make.com/en/integrations/rd-station/sap-s4hana" },
+    { label: "Make — RD + Visma", url: "https://www.make.com/en/integrations/rd-station/visma.net-erp" },
+    { label: "Make — RD + Oracle", url: "https://www.make.com/en/integrations/rd-station/oracle-fusion-cloud-erp" },
+  ],
+};
 
-    // --- DATA OBJECTS (Truncated for brevity, but same as original) ---
-    const DATA = {
-        Pipedrive: {
-            api: { status: "equal", ploomes: "API pública bem documentada com portal do desenvolvedor", competitor: "API pública robusta e bem documentada; ERD disponível publicamente" },
-            plugplay: { status: "equal", ploomes: "Integrações nativas com Sankhya e OMIE", competitor: "Integrações com Conta Azul, ERP Flex, Gestão Click (desenvolvidas pelos ERPs)" },
-            ipaas: { status: "inferior", ploomes: "Apenas via Pluga. Sem nodes nativos no N8N", competitor: "Albato, Pluga, N8N (nativos), Appz Connect, Floui, consultoria P (SAP)" },
-            entities: { status: "equal", ploomes: "Clientes, produtos, propostas e vendas", competitor: "Clientes, negócios, vendas, produtos, usuários, contatos, pedidos, pagamentos" },
-            mapping: { status: "superior", ploomes: "Sankhya: altamente dinâmico — mapeia qualquer campo do BD", competitor: "Sem informações públicas sobre mapeamento; apenas via iPaaS" },
-            filters: { status: "superior", ploomes: "Sankhya: filtros usando qualquer campo das entidades", competitor: "iPaaS: gatilhos predefinidos. Plug & Play: sem filtros" },
-            ways: { status: "equal", ploomes: "Sankhya e OMIE: importação e exportação", competitor: "Conta Azul/SAP/OMIE: bidirecional. Demais: apenas exportação" },
-            actions: { status: "equal", ploomes: "OMIE: CRUD completo. Sankhya: CRU", competitor: "SAP: CRUD. Conta Azul/OMIE: CRU. ERP Flex: apenas CR" },
-            limits: { status: "equal", ploomes: "Recomendação interna de 200k registros/entidade", competitor: "Apenas limites de requisições de API documentados" },
-            logs: { status: "superior", ploomes: "Sankhya: tela detalhada de auditoria com payloads", competitor: "Nenhuma informação pública sobre logs ou rastreabilidade" },
-            realtime: { status: "superior", ploomes: "Sankhya: consultas em tempo real de preço, imposto e estoque", competitor: "Nenhuma integração com consulta em tempo real documentada" },
-            ai: { status: "equal", ploomes: "Agente conversacional", competitor: "Nenhuma feature de IA relacionada a integração ERP" },
-        },
-        "Zoho CRM": {
-            api: { status: "equal", ploomes: "API pública bem documentada", competitor: "API completa com créditos; Query API (COQL); APIs bulk; sandbox" },
-            plugplay: { status: "superior", ploomes: "Integrações nativas com Sankhya e OMIE", competitor: "Nenhuma integração plug & play documentada" },
-            ipaas: { status: "inferior", ploomes: "Apenas via Pluga", competitor: "Pluga, Albato, Make, N8N (nodes nativos), Floui — ampla cobertura" },
-            entities: { status: "equal", ploomes: "Clientes, produtos, propostas e vendas", competitor: "Leads, contatos, contas, vendas, pedidos, notas, OS" },
-            mapping: { status: "superior", ploomes: "Sankhya: mapeamento dinâmico de qualquer campo", competitor: "Sem informações públicas sobre interfaces de mapeamento" },
-            filters: { status: "superior", ploomes: "Sankhya: filtros flexíveis", competitor: "iPaaS: limitado a gatilhos predefinidos" },
-            ways: { status: "equal", ploomes: "Import e export nas duas vias", competitor: "Maioria bidirecional; Visma e Olist somente importação" },
-            actions: { status: "equal", ploomes: "OMIE: CRUD completo", competitor: "Totvs/Oracle: CRUD. Conta Azul/SAP: CRU" },
-            limits: { status: "equal", ploomes: "API + 200k registros", competitor: "Sistema de créditos de API por plano contratado" },
-            logs: { status: "superior", ploomes: "Sankhya: logs detalhados com auditoria e payloads", competitor: "Sem documentação pública sobre logs" },
-            realtime: { status: "superior", ploomes: "Sankhya: consulta em tempo real", competitor: "Nenhuma funcionalidade de consulta em tempo real" },
-            ai: { status: "equal", ploomes: "Agente conversacional", competitor: "Predição de negócios — sem relação com ERP" },
-        },
-        Salesforce: {
-            api: { status: "equal", ploomes: "API bem documentada", competitor: "API robusta; linguagem proprietária (Apex/DataWeave) pode complicar" },
-            plugplay: { status: "equal", ploomes: "Sankhya e OMIE", competitor: "Mulesoft (nativo) com nodes SAP e Oracle — foco em ERPs globais" },
-            ipaas: { status: "inferior", ploomes: "Apenas via Pluga", competitor: "Make, Albato, Jitterbit, N8N (nativos) + AppExchange" },
-            entities: { status: "inferior", ploomes: "Clientes, produtos, propostas e vendas", competitor: "Escopo massivo: financeiro, contratos, estoque, propostas" },
-            mapping: { status: "equal", ploomes: "Sankhya: dinâmico por interface", competitor: "Mulesoft: vinculação visual drag-and-drop — fixos" },
-            filters: { status: "equal", ploomes: "Sankhya: filtros flexíveis", competitor: "Mulesoft: flexível, mas exige código (Apex)" },
-            ways: { status: "equal", ploomes: "Import e export", competitor: "Import e export para todos os ERPs" },
-            actions: { status: "equal", ploomes: "OMIE: CRUD", competitor: "Nativo (Oracle/SAP): CRUD. iPaaS: CRU" },
-            limits: { status: "equal", ploomes: "API + 200k registros", competitor: "Limites de API complexos e por org" },
-            logs: { status: "inferior", ploomes: "Sankhya: logs com payloads", competitor: "Mulesoft: logs detalhados + download payloads + dashboard" },
-            realtime: { status: "superior", ploomes: "Sankhya: consultas em tempo real", competitor: "Nenhuma consulta em tempo real nativa" },
-            ai: { status: "equal", ploomes: "Sem features de IA para ERP", competitor: "Einstein (foco em vendas/CRM, não ERP)" },
-        },
-        HubSpot: {
-            api: { status: "equal", ploomes: "API pública bem documentada", competitor: "API pública detalhada e robusta" },
-            plugplay: { status: "equal", ploomes: "Sankhya e OMIE", competitor: "Marketplace: Oracle NetSuite, SAP, Visma, Sanka" },
-            ipaas: { status: "inferior", ploomes: "Apenas Pluga", competitor: "Pluga, Albato, Make, N8N (nodes nativos)" },
-            entities: { status: "equal", ploomes: "Clientes e vendas", competitor: "Empresas, contatos, produtos, pedidos, faturas" },
-            mapping: { status: "superior", ploomes: "Sankhya: mapeamento dinâmico", competitor: "Mapeamentos padrões fixos + campos adicionais limitados" },
-            filters: { status: "superior", ploomes: "Sankhya: filtros em qualquer campo", competitor: "Marketplace: sem info sobre filtros flexíveis" },
-            ways: { status: "equal", ploomes: "Import e export", competitor: "Import e export para todas as integrações" },
-            actions: { status: "equal", ploomes: "OMIE: CRUD", competitor: "CRUD confirmado; deleção em nativas não verificada" },
-            limits: { status: "equal", ploomes: "API + 200k registros", competitor: "Limites por 10s e por tipo de conta" },
-            logs: { status: "equal", ploomes: "Sankhya: logs detalhados", competitor: "Marketplace: logs de erro + detalhes de workflow" },
-            realtime: { status: "superior", ploomes: "Sankhya: consultas em tempo real", competitor: "Nenhuma funcionalidade de consulta em tempo real" },
-            ai: { status: "equal", ploomes: "Agente conversacional", competitor: "Nada pertinente para integração ERP" },
-        },
-        "RD Station": {
-            api: { status: "superior", ploomes: "API completa para todas as entidades", competitor: "Limitações em criação/exclusão de certas entidades via API" },
-            plugplay: { status: "equal", ploomes: "Sankhya e OMIE", competitor: "OMIE, Senior, Clínica das Nuvens, Totvs" },
-            ipaas: { status: "inferior", ploomes: "Apenas Pluga", competitor: "Pluga, Albato, Make, N8N" },
-            entities: { status: "superior", ploomes: "Escopo amplo (produtos, propostas)", competitor: "Apenas contatos, empresas e negociações" },
-            mapping: { status: "superior", ploomes: "Sankhya: mapeamento dinâmico", competitor: "Via Pluga: mapeamento limitado campo a campo" },
-            filters: { status: "superior", ploomes: "Sankhya: filtros flexíveis", competitor: "Limitado a gatilhos simples" },
-            ways: { status: "equal", ploomes: "Import e export", competitor: "Senior: só export. Demais: ambas" },
-            actions: { status: "equal", ploomes: "OMIE: CRUD", competitor: "OMIE/Conta Azul: CRU" },
-            limits: { status: "equal", ploomes: "API + 200k registros", competitor: "Limites de API padrão" },
-            logs: { status: "superior", ploomes: "Sankhya: logs detalhados", competitor: "Nenhuma info sobre logs de auditoria" },
-            realtime: { status: "superior", ploomes: "Sankhya: consultas em tempo real", competitor: "Nenhuma integração possui" },
-            ai: { status: "equal", ploomes: "Agente conversacional", competitor: "Preenchimento com IA (baixa acurácia reportada)" },
-        }
-    };
+const DATA = {
+  Pipedrive: {
+    api: { status: "equal", ploomes: "API pública bem documentada com portal do desenvolvedor", competitor: "API pública robusta e bem documentada; ERD disponível publicamente" },
+    plugplay: { status: "equal", ploomes: "Integrações nativas com Sankhya e OMIE", competitor: "Integrações com Conta Azul, ERP Flex, Gestão Click, Venda ERP (desenvolvidas pelos ERPs)" },
+    ipaas: { status: "inferior", ploomes: "Apenas via Pluga (OMIE, Conta Azul, Olist). Sem nodes nativos no N8N", competitor: "Albato, Pluga, N8N (nodes nativos), Appz Connect, Floui (Totvs), consultoria P (SAP)" },
+    entities: { status: "equal", ploomes: "Clientes, produtos, propostas e vendas (Sankhya e OMIE)", competitor: "Clientes, negócios, vendas, produtos, usuários, contatos, pedidos, pagamentos" },
+    mapping: { status: "superior", ploomes: "OMIE: fixo com lista pré-definida. Sankhya: altamente dinâmico — mapeia qualquer campo do BD ↔ qualquer campo do Ploomes", competitor: "Sem informações públicas sobre mapeamento de campos; apenas via iPaaS" },
+    filters: { status: "superior", ploomes: "OMIE: sem filtros flexíveis. Sankhya: filtros usando qualquer campo das entidades", competitor: "iPaaS: filtros = gatilhos predefinidos. Plug & Play: sem filtros, condição única" },
+    ways: { status: "equal", ploomes: "Sankhya e OMIE: importação e exportação nas duas vias", competitor: "Conta Azul/SAP/OMIE: bidirecional. ERP Flex e Gestão Click: apenas exportação" },
+    actions: { status: "equal", ploomes: "OMIE: CRUD completo. Sankhya: CRU (sem deleção)", competitor: "SAP: CRUD. Conta Azul/OMIE: CRU. ERP Flex/Gestão Click: apenas CR" },
+    limits: { status: "equal", ploomes: "Limites de API dos ERPs + recomendação interna de 200k registros/entidade", competitor: "Apenas limites de requisições de API documentados" },
+    logs: { status: "superior", ploomes: "OMIE: sem logs. Sankhya: tela detalhada de auditoria import/export com payloads", competitor: "Nenhuma informação pública sobre logs de auditoria ou rastreabilidade" },
+    realtime: { status: "superior", ploomes: "Sankhya: consultas em tempo real de preço, imposto e estoque — único CRM-ERP identificado", competitor: "Nenhuma integração com consulta em tempo real documentada" },
+    ai: { status: "equal", ploomes: "Agente conversacional (fora do escopo de integração ERP)", competitor: "Nenhuma feature de IA relacionada a integração ERP" },
+  },
+  "Zoho CRM": {
+    api: { status: "equal", ploomes: "API pública bem documentada", competitor: "API completa com créditos; Query API (COQL) com SQL; APIs bulk síncronas; ambiente sandbox" },
+    plugplay: { status: "superior", ploomes: "Integrações nativas com Sankhya e OMIE", competitor: "Nenhuma integração plug & play documentada" },
+    ipaas: { status: "inferior", ploomes: "Apenas via Pluga. Sem nodes nativos no N8N", competitor: "Pluga, Albato, Appz Connect, Make, N8N (nodes nativos), Floui — ampla cobertura" },
+    entities: { status: "equal", ploomes: "Clientes, produtos, propostas e vendas", competitor: "Leads, contatos, contas, vendas, pedidos, notas de pagamento, ordens de serviço" },
+    mapping: { status: "superior", ploomes: "Sankhya: mapeamento dinâmico de qualquer campo", competitor: "Sem informações públicas sobre interfaces ou limites de mapeamento" },
+    filters: { status: "superior", ploomes: "Sankhya: filtros flexíveis em qualquer campo", competitor: "iPaaS: limitado a gatilhos predefinidos" },
+    ways: { status: "equal", ploomes: "Import e export nas duas vias", competitor: "Maioria bidirecional; Visma e Olist somente importação" },
+    actions: { status: "equal", ploomes: "OMIE: CRUD completo. Sankhya: CRU", competitor: "Totvs/Oracle: CRUD. Conta Azul/SAP/OMIE: CRU" },
+    limits: { status: "equal", ploomes: "API + 200k registros recomendados", competitor: "Sistema de créditos de API por plano contratado" },
+    logs: { status: "superior", ploomes: "Sankhya: logs detalhados com auditoria e payloads", competitor: "Sem documentação pública sobre logs" },
+    realtime: { status: "superior", ploomes: "Sankhya: consulta em tempo real (preço, imposto, estoque)", competitor: "Nenhuma funcionalidade de consulta em tempo real" },
+    ai: { status: "equal", ploomes: "Agente conversacional", competitor: "Predição de negócios, enriquecimento com scraping — sem relação com ERP" },
+  },
+  Salesforce: {
+    api: { status: "equal", ploomes: "API bem documentada e fácil de usar", competitor: "API documentada; linguagem proprietária (Apex/DataWeave) pode complicar" },
+    plugplay: { status: "equal", ploomes: "Sankhya e OMIE (ERPs brasileiros)", competitor: "Mulesoft (nativo) com nodes SAP e Oracle — foco em ERPs globais" },
+    ipaas: { status: "inferior", ploomes: "Apenas via Pluga. Sem N8N", competitor: "Make, Albato, Appz Connect, Jitterbit, N8N (nativos) + AppExchange" },
+    entities: { status: "inferior", ploomes: "Clientes, produtos, propostas e vendas", competitor: "Clientes, contatos, propostas, negócios, vendas, financeiro, produtos, contratos, estoque" },
+    mapping: { status: "equal", ploomes: "Sankhya: dinâmico por interface. OMIE: lista fixa", competitor: "Celigo: tabela de/para manual. Mulesoft: vinculação visual drag-and-drop — fixos" },
+    filters: { status: "equal", ploomes: "Sankhya: filtros flexíveis via interface amigável", competitor: "Mulesoft: flexível, mas exige código proprietário (Apex)" },
+    ways: { status: "equal", ploomes: "Import e export em ambas integrações", competitor: "Import e export para todos os ERPs" },
+    actions: { status: "equal", ploomes: "OMIE: CRUD. Sankhya: CRU", competitor: "Nativo (Oracle/SAP): CRUD. iPaaS (Conta Azul/OMIE): CRU" },
+    limits: { status: "equal", ploomes: "API + 200k registros", competitor: "Limites de API não detalhados publicamente" },
+    logs: { status: "inferior", ploomes: "Sankhya: logs com payloads", competitor: "Celigo: saúde dos flows. Mulesoft: logs detalhados + download payloads + dashboard de saúde" },
+    realtime: { status: "superior", ploomes: "Sankhya: consultas em tempo real (preço, imposto, estoque)", competitor: "Nenhuma consulta em tempo real nas integrações ERP" },
+    ai: { status: "equal", ploomes: "Sem features de IA para ERP", competitor: "Sem features de IA para integração ERP" },
+  },
+  HubSpot: {
+    api: { status: "equal", ploomes: "API pública bem documentada", competitor: "API pública detalhada e bem documentada" },
+    plugplay: { status: "equal", ploomes: "Sankhya e OMIE", competitor: "Marketplace: Oracle NetSuite (queixas), SAP, Visma, Sanka" },
+    ipaas: { status: "inferior", ploomes: "Apenas Pluga. Sem N8N", competitor: "Pluga, Albato, Appz Connect, Make, N8N (nodes nativos)" },
+    entities: { status: "equal", ploomes: "Clientes, produtos, propostas e vendas", competitor: "Empresas, contatos, produtos, negócios, pedidos, faturas, tabela de preços" },
+    mapping: { status: "superior", ploomes: "Sankhya: mapeamento dinâmico de qualquer campo do BD", competitor: "Mapeamentos padrões fixos + campos adicionais de lista pré-determinada" },
+    filters: { status: "superior", ploomes: "Sankhya: filtros em qualquer campo das entidades", competitor: "iPaaS: gatilhos predefinidos. Marketplace: sem info sobre filtros" },
+    ways: { status: "equal", ploomes: "Import e export nas duas vias", competitor: "Import e export para todas as integrações" },
+    actions: { status: "equal", ploomes: "OMIE: CRUD. Sankhya: CRU", competitor: "CRUD confirmado; deleção em nativas não verificada" },
+    limits: { status: "equal", ploomes: "API + 200k registros", competitor: "Apps públicos: 660 req/min; privados: limite por conta e por 10s" },
+    logs: { status: "equal", ploomes: "Sankhya: logs detalhados com payloads", competitor: "Marketplace: logs de erro + logs de eventos com detalhes de workflow" },
+    realtime: { status: "superior", ploomes: "Sankhya: consultas em tempo real", competitor: "Nenhuma funcionalidade de consulta em tempo real" },
+    ai: { status: "equal", ploomes: "Agente conversacional", competitor: "Nada pertinente para integração ERP" },
+  },
+  "RD Station": {
+    api: { status: "superior", ploomes: "API completa para todas as entidades com documentação clara", competitor: "Limitações: algumas entidades não permitem criação/atualização/exclusão via API" },
+    plugplay: { status: "equal", ploomes: "Sankhya e OMIE", competitor: "OMIE (pelo OMIE), Senior, Clínica das Nuvens, ISY, Totvs (grupo)" },
+    ipaas: { status: "inferior", ploomes: "Apenas Pluga. Sem N8N", competitor: "Pluga, Albato, Make, N8N (nodes nativos catalogados)" },
+    entities: { status: "superior", ploomes: "Clientes, produtos, propostas e vendas — escopo mais amplo", competitor: "Apenas contatos, empresas e negociações — escopo limitado" },
+    mapping: { status: "superior", ploomes: "Sankhya: mapeamento dinâmico de qualquer campo", competitor: "Via Pluga: mapeamento limitado (campo origem → destino, sem flex)" },
+    filters: { status: "superior", ploomes: "Sankhya: filtros flexíveis em qualquer campo", competitor: "iPaaS: limitado a gatilhos. OMIE P&P: fluxos gatilho→ação" },
+    ways: { status: "equal", ploomes: "Import e export", competitor: "Senior: só export. Demais: import+export" },
+    actions: { status: "equal", ploomes: "OMIE: CRUD. Sankhya: CRU", competitor: "OMIE/Conta Azul: CRU. SAP/Oracle/Visma: CRUD" },
+    limits: { status: "equal", ploomes: "API + 200k registros", competitor: "Apenas limites de API documentados" },
+    logs: { status: "superior", ploomes: "Sankhya: logs detalhados de auditoria com payloads", competitor: "Nenhuma info sobre logs, auditoria ou rastreabilidade" },
+    realtime: { status: "superior", ploomes: "Sankhya: consultas em tempo real (preço, imposto, estoque)", competitor: "Nenhuma integração possui consulta em tempo real" },
+    ai: { status: "equal", ploomes: "Agente conversacional", competitor: "Preenchimento com IA — baixa acurácia (mapeou telefone como CPF)" },
+  },
+};
 
-    const SOURCES = {
-        Pipedrive: [
-            { label: "Pipedrive API Docs", url: "https://pipedrive.readme.io/docs/core-api-concepts-about-pipedrive-api" },
-            { label: "Conta Azul + Pipedrive", url: "https://ajuda.contaazul.com/hc/pt-br/articles/8099262350093" },
-            { label: "N8N — Pipedrive", url: "https://n8n.io/integrations/pipedrive/" }
-        ],
-        "Zoho CRM": [
-            { label: "Zoho CRM API v8", url: "https://www.zoho.com/crm/developer/docs/api/v8/" },
-            { label: "Zoho API Limits", url: "https://www.zoho.com/crm/developer/docs/api/v8/api-limits.html" }
-        ],
-        Salesforce: [
-            { label: "Mulesoft Connectors", url: "https://www.mulesoft.com/platform/cloud-connectors" },
-            { label: "Linguagem Apex (Salesforce)", url: "https://weenow.com.br/blog/linguagem-apex/" }
-        ],
-        HubSpot: [
-            { label: "HubSpot API Reference", url: "https://developers.hubspot.com/docs/api-reference/overview" },
-            { label: "HubSpot Data Sync Mapping", url: "https://knowledge.hubspot.com/pt/integrations/understand-your-data-sync-field-mappings" }
-        ],
-        "RD Station": [
-            { label: "RD Station CRM API", url: "https://developers.rdstation.com/reference/crm-v2-introduction" },
-            { label: "RD Station API Limits", url: "https://developers.rdstation.com/reference/limite-de-requisicoes-da-api" }
-        ]
-    };
+// --- Helpers ---
+function countByStatus(comp) {
+  const d = DATA[comp];
+  let sup = 0, eq = 0, inf = 0;
+  for (const k in d) {
+    if (d[k].status === "superior") sup++;
+    else if (d[k].status === "equal") eq++;
+    else inf++;
+  }
+  return { superior: sup, equal: eq, inferior: inf };
+}
 
-    let selectedCompetitor = null;
-    let currentTab = 'details';
+function makePieSVG(counts, size) {
+  size = size || 44;
+  const r = size / 2, cr = r * 0.65;
+  const segs = [
+    { count: counts.superior, color: "var(--green)" },
+    { count: counts.equal, color: "var(--gray)" },
+    { count: counts.inferior, color: "var(--red)" },
+  ];
+  let cum = -90, paths = "";
+  segs.forEach(s => {
+    if (!s.count) return;
+    const a = (s.count / 12) * 360;
+    const s1 = (cum * Math.PI) / 180, s2 = ((cum + a) * Math.PI) / 180;
+    const x1 = r + cr * Math.cos(s1), y1 = r + cr * Math.sin(s1);
+    const x2 = r + cr * Math.cos(s2), y2 = r + cr * Math.sin(s2);
+    paths += `<path d="M ${r} ${r} L ${x1} ${y1} A ${cr} ${cr} 0 ${a > 180 ? 1 : 0} 1 ${x2} ${y2} Z" fill="${s.color}"/>`;
+    cum += a;
+  });
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${paths}<circle cx="${r}" cy="${r}" r="${cr * 0.42}" fill="var(--dark-ploo)"/><text x="${r}" y="${r + 1}" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-size="11" font-weight="700" font-family="Manrope">${counts.superior}</text></svg>`;
+}
 
-    // --- UTILS ---
-    function countByStatus(comp) {
-        const d = DATA[comp];
-        let sup = 0, eq = 0, inf = 0;
-        Object.values(d).forEach(v => {
-            if (v.status === "superior") sup++;
-            else if (v.status === "equal") eq++;
-            else inf++;
-        });
-        return { superior: sup, equal: eq, inferior: inf };
-    }
+let selectedComp = null;
 
-    function generateMiniPie(counts, size = 44) {
-        const total = 12;
-        const r = size / 2;
-        const cr = r * 0.65;
-        const segments = [
-            { count: counts.superior, color: STATUS_CONFIG.superior.bg },
-            { count: counts.equal, color: STATUS_CONFIG.equal.bg },
-            { count: counts.inferior, color: STATUS_CONFIG.inferior.bg },
-        ];
-        let cumAngle = -90;
-        let paths = '';
-        
-        segments.forEach(seg => {
-            if (seg.count === 0) return;
-            const angle = (seg.count / total) * 360;
-            const startRad = (cumAngle * Math.PI) / 180;
-            const endRad = ((cumAngle + angle) * Math.PI) / 180;
-            const x1 = r + cr * Math.cos(startRad);
-            const y1 = r + cr * Math.sin(startRad);
-            const x2 = r + cr * Math.cos(endRad);
-            const y2 = r + cr * Math.sin(endRad);
-            const largeArc = angle > 180 ? 1 : 0;
-            paths += `<path d="M ${r} ${r} L ${x1} ${y1} A ${cr} ${cr} 0 ${largeArc} 1 ${x2} ${y2} Z" fill="${seg.color}" />`;
-            cumAngle += angle;
-        });
+// --- Render Summary ---
+function renderSummary() {
+  let totalSup = 0, totalEq = 0, totalInf = 0;
+  COMPETITORS.forEach(c => { const ct = countByStatus(c); totalSup += ct.superior; totalEq += ct.equal; totalInf += ct.inferior; });
+  const total = totalSup + totalEq + totalInf;
+  const cards = [
+    { label: "Ploomes superior", count: totalSup, color: "var(--green)" },
+    { label: "Equivalente", count: totalEq, color: "var(--gray)" },
+    { label: "Ploomes inferior", count: totalInf, color: "var(--red)" },
+  ];
+  document.getElementById("summaryCards").innerHTML = cards.map(c =>
+    `<div class="summary-card"><div class="summary-label">${c.label}</div><div><span class="summary-num" style="color:${c.color}">${c.count}</span> <span class="summary-total">/ ${total} (${Math.round(c.count / total * 100)}%)</span></div></div>`
+  ).join("");
+}
 
-        return `
-            <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-                ${paths}
-                <circle cx="${r}" cy="${r}" r="${cr * 0.42}" fill="#1E0C45" />
-                <text x="${r}" y="${r + 1}" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-size="11" font-weight="700">${counts.superior}</text>
-            </svg>
-        `;
-    }
+// --- Render Heatmap ---
+function renderHeatmap() {
+  let html = "<thead><tr><th>CRM</th>";
+  CRITERIA.forEach(c => { html += `<th>${c.short}</th>`; });
+  html += "<th></th></tr></thead><tbody>";
+  COMPETITORS.forEach(comp => {
+    const counts = countByStatus(comp);
+    const sel = selectedComp === comp ? " selected" : "";
+    html += `<tr class="${sel}" onclick="selectComp('${comp}')"><td>${comp}</td>`;
+    CRITERIA.forEach(cr => {
+      const st = DATA[comp][cr.id].status;
+      html += `<td><div class="cell ${CLASSES[st]}">${ICONS[st]}</div></td>`;
+    });
+    html += `<td>${makePieSVG(counts)}</td></tr>`;
+  });
+  html += "</tbody>";
+  document.getElementById("heatmapTable").innerHTML = html;
+}
 
-    // --- CORE LOGIC ---
-    function init() {
-        renderSummary();
-        renderHeaders();
-        renderTable();
-    }
+// --- Select Competitor ---
+function selectComp(comp) {
+  if (selectedComp === comp) { closeDetail(); return; }
+  selectedComp = comp;
+  renderHeatmap();
+  document.getElementById("detailName").textContent = comp;
+  document.getElementById("tabSources").textContent = `Fontes (${(SOURCES[comp] || []).length})`;
+  switchTab("details");
+  document.getElementById("detailPanel").classList.add("active");
+  document.getElementById("detailPanel").scrollIntoView({ behavior: "smooth", block: "start" });
+}
 
-    function renderSummary() {
-        let totalSup = 0, totalEq = 0, totalInf = 0;
-        COMPETITORS.forEach(c => {
-            const counts = countByStatus(c);
-            totalSup += counts.superior;
-            totalEq += counts.equal;
-            totalInf += counts.inferior;
-        });
-        const total = totalSup + totalEq + totalInf;
+function closeDetail() {
+  selectedComp = null;
+  document.getElementById("detailPanel").classList.remove("active");
+  renderHeatmap();
+}
 
-        const cards = [
-            { label: "Ploomes superior", count: totalSup, color: STATUS_CONFIG.superior.bg },
-            { label: "Equivalente", count: totalEq, color: STATUS_CONFIG.equal.bg },
-            { label: "Ploomes inferior", count: totalInf, color: STATUS_CONFIG.inferior.bg },
-        ];
+// --- Tabs ---
+function switchTab(tab) {
+  const isDetails = tab === "details";
+  document.getElementById("tabDetails").classList.toggle("active", isDetails);
+  document.getElementById("tabSources").classList.toggle("active", !isDetails);
+  document.getElementById("detailContent").style.display = isDetails ? "block" : "none";
+  document.getElementById("sourcesContent").style.display = isDetails ? "none" : "block";
+  if (isDetails) renderDetails(); else renderSources();
+}
 
-        document.getElementById('summary-cards').innerHTML = cards.map(c => `
-            <div class="summary-card">
-                <div class="summary-label">${c.label}</div>
-                <div class="summary-value">
-                    <span class="summary-number" style="color: ${c.color}">${c.count}</span>
-                    <span class="summary-pct">/ ${total} (${Math.round(c.count/total*100)}%)</span>
-                </div>
-            </div>
-        `).join('');
-    }
+function renderDetails() {
+  if (!selectedComp) return;
+  let html = '<div class="criteria-list">';
+  CRITERIA.forEach(cr => {
+    const cell = DATA[selectedComp][cr.id];
+    const cls = CLASSES[cell.status];
+    html += `<div class="criteria-card ${cls}">
+      <div class="criteria-header">
+        <span class="criteria-name">${cr.label}</span>
+        <span class="badge ${cls}">${ICONS[cell.status]} ${LABELS[cell.status]}</span>
+      </div>
+      <div class="criteria-compare">
+        <div><div class="compare-label ploomes">Ploomes</div><div class="compare-text ploomes">${cell.ploomes}</div></div>
+        <div><div class="compare-label competitor">${selectedComp}</div><div class="compare-text competitor">${cell.competitor}</div></div>
+      </div>
+    </div>`;
+  });
+  html += "</div>";
+  document.getElementById("detailContent").innerHTML = html;
+}
 
-    function renderHeaders() {
-        const headerRow = document.getElementById('table-headers');
-        CRITERIA.forEach(c => {
-            const th = document.createElement('th');
-            th.title = c.label;
-            th.textContent = c.short;
-            headerRow.insertBefore(th, headerRow.lastElementChild);
-        });
-    }
+function renderSources() {
+  if (!selectedComp) return;
+  const srcs = SOURCES[selectedComp] || [];
+  let html = '<div class="sources-list">';
+  srcs.forEach((s, i) => {
+    const shortUrl = s.url.replace(/^https?:\/\//, "").split("?")[0];
+    html += `<a class="source-link" href="${s.url}" target="_blank" rel="noopener noreferrer">
+      <div class="source-num">${i + 1}</div>
+      <div class="source-info"><div class="source-title">${s.label}</div><div class="source-url">${shortUrl}</div></div>
+      <span class="source-arrow">→</span>
+    </a>`;
+  });
+  html += "</div>";
+  document.getElementById("sourcesContent").innerHTML = html;
+}
 
-    function renderTable() {
-        const body = document.getElementById('matrix-body');
-        body.innerHTML = COMPETITORS.map(comp => {
-            const counts = countByStatus(comp);
-            return `
-                <tr class="row-competitor" id="row-${comp.replace(' ', '-')}" onclick="selectCompetitor('${comp}')">
-                    <td class="cell-name">${comp}</td>
-                    ${CRITERIA.map(cr => {
-                        const cell = DATA[comp][cr.id];
-                        const cfg = STATUS_CONFIG[cell.status];
-                        return `
-                            <td class="status-cell">
-                                <div class="status-icon-box" style="background: ${cfg.bgLight}; color: ${cfg.bg}" 
-                                     onmouseover="this.style.background='${cfg.bg}'; this.style.color='#fff'"
-                                     onmouseout="this.style.background='${cfg.bgLight}'; this.style.color='${cfg.bg}'">
-                                    ${cfg.icon}
-                                </div>
-                            </td>
-                        `;
-                    }).join('')}
-                    <td class="mini-pie-container">${generateMiniPie(counts)}</td>
-                </tr>
-            `;
-        }).join('');
-    }
+// --- Competitor Cards ---
+function renderCompCards() {
+  let html = "";
+  COMPETITORS.forEach(comp => {
+    const counts = countByStatus(comp);
+    const srcs = (SOURCES[comp] || []).length;
+    html += `<div class="comp-card" onclick="selectComp('${comp}')">
+      <div style="margin-bottom:10px">${makePieSVG(counts, 52)}</div>
+      <div class="comp-name">${comp}</div>
+      <div class="comp-scores">
+        <span style="color:var(--green)">${counts.superior}▲</span>
+        <span style="color:var(--gray)">${counts.equal}●</span>
+        <span style="color:var(--red)">${counts.inferior}▼</span>
+      </div>
+      <div class="comp-sources">${srcs} fontes</div>
+    </div>`;
+  });
+  document.getElementById("compGrid").innerHTML = html;
+}
 
-    function selectCompetitor(name) {
-        selectedCompetitor = name;
-        document.querySelectorAll('.row-competitor').forEach(r => r.classList.remove('selected'));
-        document.getElementById(`row-${name.replace(' ', '-')}`).classList.add('selected');
-        
-        document.getElementById('detail-panel').style.display = 'block';
-        document.getElementById('detail-title').innerHTML = `Ploomes <span>vs</span> ${name}`;
-        
-        const sourceCount = (SOURCES[name] || []).length;
-        document.getElementById('sources-tab-btn').textContent = `Fontes (${sourceCount})`;
-        
-        renderDetailContent();
-        
-        // Scroll to panel
-        document.getElementById('detail-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+// --- Footer ---
+function renderFooter() {
+  let totalSrcs = 0;
+  for (const k in SOURCES) totalSrcs += SOURCES[k].length;
+  document.getElementById("footerText").textContent = `Pesquisa: Matheus Martins (PO Squad ERP) · Out–Nov 2025 · Fontes: documentação pública, demos, testes de usabilidade, fóruns · ERPs: Sankhya, OMIE, Conta Azul, SAP, Oracle, Totvs, Visma · Total: ${totalSrcs} fontes catalogadas`;
+}
 
-    function setTab(tab) {
-        currentTab = tab;
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        event.target.classList.add('active');
-        renderDetailContent();
-    }
-
-    function renderDetailContent() {
-        const container = document.getElementById('detail-content');
-        if (currentTab === 'details') {
-            container.innerHTML = CRITERIA.map(cr => {
-                const cell = DATA[selectedCompetitor][cr.id];
-                const cfg = STATUS_CONFIG[cell.status];
-                return `
-                    <div class="criteria-card" style="border-left: 4px solid ${cfg.bg}">
-                        <div class="criteria-header">
-                            <span style="font-weight: 700; font-size: 14px; color: #EBE5FF">${cr.label}</span>
-                            <span style="font-size: 11px; font-weight: 700; color: ${cfg.bg}; background: ${cfg.bgLight}; padding: 3px 10px; border-radius: 20px; text-transform: uppercase;">
-                                ${cfg.icon} ${cfg.label}
-                            </span>
-                        </div>
-                        <div class="criteria-grid">
-                            <div>
-                                <div class="side-label" style="color: var(--brand-primary)">Ploomes</div>
-                                <div class="side-text" style="color: var(--brand-soft)">${cell.ploomes}</div>
-                            </div>
-                            <div>
-                                <div class="side-label" style="color: var(--brand-light)">${selectedCompetitor}</div>
-                                <div class="side-text" style="color: #9CA3AF">${cell.competitor}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        } else {
-            const sources = SOURCES[selectedCompetitor] || [];
-            container.innerHTML = sources.map((src, i) => `
-                <a href="${src.url}" target="_blank" class="source-link">
-                    <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(116,67,246,0.15); display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--brand-primary); font-weight: 700;">${i+1}</div>
-                    <div style="flex: 1; overflow: hidden;">
-                        <div style="font-size: 13px; font-weight: 600; color: #EBE5FF; margin-bottom: 2px;">${src.label}</div>
-                        <div style="font-size: 11px; color: #6B7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${src.url.replace('https://', '')}</div>
-                    </div>
-                    <span style="color: var(--brand-primary)">→</span>
-                </a>
-            `).join('');
-        }
-    }
-
-    function closeDetail() {
-        document.getElementById('detail-panel').style.display = 'none';
-        document.querySelectorAll('.row-competitor').forEach(r => r.classList.remove('selected'));
-    }
-
-    init();
+// --- Init ---
+renderSummary();
+renderHeatmap();
+renderCompCards();
+renderFooter();
 </script>
-
 </body>
 </html>
